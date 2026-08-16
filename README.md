@@ -1,5 +1,7 @@
 # dsh-preset-minimal-pwsh
 
+[![preset-check](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml/badge.svg)](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml)
+
 DeepSeek Harness 的 Windows 版「极简模式」agent preset：用官方内置的 `pwsh` 工具替代官方极简模式中无法在 Windows 上运行的持久 `bash`。双工具（`pwsh` + `str_replace_editor`）、固定 persona、无上下文压缩，设计对齐官方极简模式；只依赖官方内置插件，不修改核心代码。
 
 ## 为什么需要

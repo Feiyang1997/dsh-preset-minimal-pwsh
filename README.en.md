@@ -1,5 +1,7 @@
 # dsh-preset-minimal-pwsh
 
+[![preset-check](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml/badge.svg)](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml)
+
 A Windows edition of the DeepSeek Harness **minimal** agent preset: it replaces the persistent `bash` tool — which cannot run on Windows — with the built-in `pwsh` tool. Two tools (`pwsh` + `str_replace_editor`), a fixed persona, no context compaction, aligned with the official minimal design; only built-in plugins, no core-code changes.
 
 ## Why
