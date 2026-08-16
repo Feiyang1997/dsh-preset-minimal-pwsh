@@ -59,6 +59,15 @@ The agent in the session has two tools: `pwsh` and `str_replace_editor`. To veri
 - **No editor write fence**: same as the official minimal — `str_replace_editor` uses the bare local filesystem, so it can write to any absolute path even under `read-only` / `workspace-write` badges. Using it under `danger-full-access` avoids this semantic difference entirely.
 - **win32 only**: the `tool-pwsh` row is gated by `process.platform !== 'win32'`; this preset targets Windows.
 
+## Development
+
+The preset structure is validated locally with the same check the `preset-check` workflow runs on every push/PR:
+
+```powershell
+npm ci
+npm run validate
+```
+
 ## License
 
 MIT

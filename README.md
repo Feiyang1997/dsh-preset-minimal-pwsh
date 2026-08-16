@@ -59,6 +59,15 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 - **编辑器无写围栏**：与官方极简相同，`str_replace_editor` 使用裸本地文件系统，`read-only` / `workspace-write` 徽章下仍可写任意绝对路径；仅在 `danger-full-access` 下使用可完全避免该语义差异。
 - **仅 win32**：`tool-pwsh` 行按 `process.platform !== 'win32'` 门控，本 preset 面向 Windows。
 
+## 开发
+
+预设结构校验（与 `preset-check` 工作流在每次推送/PR 时运行的是同一检查）：
+
+```powershell
+npm ci
+npm run validate
+```
+
 ## 许可
 
 MIT

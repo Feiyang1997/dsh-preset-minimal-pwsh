@@ -1,0 +1,13 @@
+{
+  "name": "dsh-preset-minimal-pwsh",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DeepSeek Harness Windows minimal-mode agent preset",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate-preset.mjs"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
