@@ -28,16 +28,21 @@
   config:
     enableRunInBackground: false
 
-# The bare local filesystem shadows the host's sandboxed provider only for this
-# preset. The editor shares that realm and requires absolute paths.
+# The sandbox-enforcing filesystem shadows the host's provider only for this
+# preset. Unlike the official minimal preset (bare fs-local leaves
+# str_replace_editor unfenced in every mode — upstream discussion #2066),
+# fs-sandbox reports sandboxMode so the editor builds a write policy:
+# read-only denies mutations, workspace-write confines them to the workspace
+# and temp roots, danger-full-access stays unfenced. The editor shares this
+# realm and requires absolute paths.
 - id: filesystem
   name: cordis:group
   group: true
   isolate:
     fs: true
   config:
-    - id: fs-local
-      name: '@deepseek-ai/dsh-fs-local'
+    - id: fs-sandbox
+      name: '@deepseek-ai/dsh-fs-sandbox'
       config:
         cwd: !!js process.env.DSH_CWD ?? process.cwd()
 

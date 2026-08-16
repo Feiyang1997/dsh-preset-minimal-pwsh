@@ -15,7 +15,7 @@ This preset replaces persistent bash with the built-in `@deepseek-ai/dsh-tool-pw
 - Fixed persona: `You are a helpful software engineer assistant.` (`complete: true`, same as the official minimal)
 - Two tools: `pwsh` (PowerShell) + `str_replace_editor`
 - No context compaction, no runtime-context snapshot
-- Only built-in packages: `dsh-persona`, `dsh-tool-pwsh`, `dsh-fs-local`, `dsh-tool-str-replace-editor`
+- Only built-in packages: `dsh-persona`, `dsh-tool-pwsh`, `dsh-fs-sandbox`, `dsh-tool-str-replace-editor`
 
 ## Differences from the official minimal preset
 
@@ -26,7 +26,7 @@ This preset replaces persistent bash with the built-in `@deepseek-ai/dsh-tool-pw
 | No compaction / no runtime context | yes | identical |
 | Persistent state (cwd / env across calls) | persistent PTY bash | none; a fresh pwsh process per call |
 | Background tasks | none (bash has no background parameter) | disabled (`enableRunInBackground: false`) |
-| Editor write fence | none (bare `fs-local`) | identical |
+| Editor write fence | none (upstream issue [#2066](https://github.com/deepseek-ai/deepseek-harness/discussions/2066)) | yes (`fs-sandbox`: read-only denies writes, workspace-write confines to workspace and temp roots, full access unfenced) |
 
 ## Install
 
@@ -58,7 +58,7 @@ The agent in the session has two tools: `pwsh` and `str_replace_editor`. To veri
 
 - **No persistent shell**: each tool call spawns a fresh `pwsh -NoLogo -NoProfile -NonInteractive -Command` process; `cd` and `$env:` do not survive between calls. Pass an explicit `workdir` when operating outside the current directory.
 - **No background execution**: `run_in_background` is disabled (this preset mounts no `tool-jobs`, same as the official minimal).
-- **No editor write fence**: same as the official minimal — `str_replace_editor` uses the bare local filesystem, so it can write to any absolute path even under `read-only` / `workspace-write` badges. Using it under `danger-full-access` avoids this semantic difference entirely.
+- **Permission-mode behavior**: `str_replace_editor` is fenced by `fs-sandbox` — `read-only` denies all writes, `workspace-write` allows only the workspace and temp roots, `danger-full-access` is unfenced (the official minimal preset lacks this fence because it mounts bare `fs-local`; see [#2066](https://github.com/deepseek-ai/deepseek-harness/discussions/2066)). `pwsh` commands run under a restricted token in `workspace-write` (ConstrainedLanguage etc.) and cannot write under `read-only`.
 - **win32 only**: the `tool-pwsh` row is gated by `process.platform !== 'win32'`; this preset targets Windows.
 
 ## Development

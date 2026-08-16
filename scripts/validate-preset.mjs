@@ -52,6 +52,17 @@ if (pwshRow.config?.enableRunInBackground !== false) {
   fail('agent.cordis.yml: tool-pwsh must set enableRunInBackground: false')
 }
 
+// The review pinned the fenced filesystem: the filesystem group must mount
+// fs-sandbox, not bare fs-local (bare fs-local leaves str_replace_editor
+// unfenced in every mode — upstream discussion #2066).
+const fsGroup = comp.find(row => row.id === 'filesystem')
+if (!fsGroup || fsGroup.group !== true || !Array.isArray(fsGroup.config)) {
+  fail('agent.cordis.yml: filesystem group missing or malformed')
+}
+const fsRowIds = fsGroup.config.map(row => row.id)
+if (!fsRowIds.includes('fs-sandbox')) fail('agent.cordis.yml: filesystem group must mount fs-sandbox')
+if (fsRowIds.includes('fs-local')) fail('agent.cordis.yml: filesystem group must not mount fs-local')
+
 const meta = yaml.load(fs.readFileSync(path.join(presetDir, 'preset.yml'), 'utf8'), { schema: SCHEMA })
 if (typeof meta.name !== 'string' || meta.name.length === 0) fail('preset.yml: name must be a non-empty string')
 if (typeof meta.description !== 'string' || meta.description.length === 0) {

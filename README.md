@@ -15,7 +15,7 @@ DeepSeek Harness 的 Windows 版「极简模式」agent preset：用官方内置
 - 固定 persona：`You are a helpful software engineer assistant.`（`complete: true`，与官方极简一致）
 - 两个工具：`pwsh`（PowerShell）+ `str_replace_editor`
 - 无上下文压缩、无运行时上下文快照
-- 仅引用官方内置包：`dsh-persona`、`dsh-tool-pwsh`、`dsh-fs-local`、`dsh-tool-str-replace-editor`
+- 仅引用官方内置包：`dsh-persona`、`dsh-tool-pwsh`、`dsh-fs-sandbox`、`dsh-tool-str-replace-editor`
 
 ## 与官方极简模式的差异
 
@@ -26,7 +26,7 @@ DeepSeek Harness 的 Windows 版「极简模式」agent preset：用官方内置
 | 无压缩 / 无运行时上下文 | 是 | 相同 |
 | 持久状态（cwd / 环境变量跨调用） | 持久 PTY bash | 无；每次调用新开 pwsh 进程 |
 | 后台任务 | 无（bash 无后台参数） | 关闭（`enableRunInBackground: false`） |
-| 编辑器写围栏 | 无（裸 `fs-local`） | 相同 |
+| 编辑器写围栏 | 无（官方缺陷 [#2066](https://github.com/deepseek-ai/deepseek-harness/discussions/2066)） | 有（`fs-sandbox`：read-only 拒绝写入、workspace-write 限工作区与临时目录、full access 无限制） |
 
 ## 安装
 
@@ -58,7 +58,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 - **无持久 shell**：每次工具调用新开 `pwsh -NoLogo -NoProfile -NonInteractive -Command` 进程，`cd` 与 `$env:` 不跨调用保留；跨目录操作请显式传 `workdir`。
 - **无后台执行**：`run_in_background` 已禁用（本 preset 未挂载 `tool-jobs`，与官方极简一致）。
-- **编辑器无写围栏**：与官方极简相同，`str_replace_editor` 使用裸本地文件系统，`read-only` / `workspace-write` 徽章下仍可写任意绝对路径；仅在 `danger-full-access` 下使用可完全避免该语义差异。
+- **权限模式行为**：`str_replace_editor` 由 `fs-sandbox` 围栏——`read-only` 拒绝一切写入，`workspace-write` 仅允许工作区与临时目录，`danger-full-access` 无限制（官方极简模式因使用裸 `fs-local` 而无此围栏，见 [#2066](https://github.com/deepseek-ai/deepseek-harness/discussions/2066)）。`pwsh` 命令在 `workspace-write` 下以受限令牌运行（ConstrainedLanguage 等），`read-only` 下拒绝写入。
 - **仅 win32**：`tool-pwsh` 行按 `process.platform !== 'win32'` 门控，本 preset 面向 Windows。
 
 ## 开发
