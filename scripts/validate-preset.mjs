@@ -1,5 +1,5 @@
 // Validates the shipped minimal-pwsh preset files: loader-dialect YAML parse,
-// row shape, and the win32 pwsh configuration the review pinned.
+// row shape, and the win32 persistent-pwsh composition the review pinned.
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -34,6 +34,10 @@ function checkRows(rows, where) {
   }
 }
 
+function isJsDisabled(row) {
+  return row?.disabled !== undefined && typeof row.disabled === 'object' && row.disabled.__js !== undefined
+}
+
 const presetDir = path.join(root, 'agent-presets', 'minimal-pwsh')
 if (!fs.existsSync(path.join(presetDir, 'agent.cordis.yml')) || !fs.existsSync(path.join(presetDir, 'preset.yml'))) {
   fail(`preset directory incomplete at ${presetDir}`)
@@ -42,15 +46,27 @@ if (!fs.existsSync(path.join(presetDir, 'agent.cordis.yml')) || !fs.existsSync(p
 const comp = yaml.load(fs.readFileSync(path.join(presetDir, 'agent.cordis.yml'), 'utf8'), { schema: SCHEMA })
 checkRows(comp, 'agent.cordis.yml')
 
-// The review pinned the win32 pwsh surface: platform gate and no background.
-const pwshRow = comp.find(row => row.id === 'tool-pwsh')
-if (!pwshRow) fail('agent.cordis.yml: tool-pwsh row missing')
-if (pwshRow.disabled === undefined || typeof pwshRow.disabled !== 'object' || pwshRow.disabled.__js === undefined) {
-  fail('agent.cordis.yml: tool-pwsh must gate on a !!js disabled expression')
+// The review pinned the persistent-shell group: the official rc8 win32 pwsh
+// PTY stack — terminal-bash with shellDialect pwsh and tool-pwsh-persistent,
+// both win32-gated.
+const shellGroup = comp.find(row => row.id === 'persistent-shell')
+if (!shellGroup || shellGroup.group !== true || !Array.isArray(shellGroup.config)) {
+  fail('agent.cordis.yml: persistent-shell group missing or malformed')
 }
-if (pwshRow.config?.enableRunInBackground !== false) {
-  fail('agent.cordis.yml: tool-pwsh must set enableRunInBackground: false')
+const shellRows = new Map(shellGroup.config.map(row => [row.id, row]))
+const terminalPwsh = shellRows.get('terminal-pwsh')
+if (!terminalPwsh || terminalPwsh.name !== '@deepseek-ai/dsh-terminal-bash') {
+  fail('agent.cordis.yml: persistent-shell must mount terminal-pwsh via dsh-terminal-bash')
 }
+if (terminalPwsh.config?.shellDialect !== 'pwsh') {
+  fail('agent.cordis.yml: terminal-pwsh must set shellDialect: pwsh')
+}
+if (!isJsDisabled(terminalPwsh)) fail('agent.cordis.yml: terminal-pwsh must gate on a !!js disabled expression')
+const persistentPwsh = shellRows.get('persistent-pwsh')
+if (!persistentPwsh || persistentPwsh.name !== '@deepseek-ai/dsh-tool-pwsh-persistent') {
+  fail('agent.cordis.yml: persistent-shell must mount persistent-pwsh via dsh-tool-pwsh-persistent')
+}
+if (!isJsDisabled(persistentPwsh)) fail('agent.cordis.yml: persistent-pwsh must gate on a !!js disabled expression')
 
 // The review pinned the fenced filesystem: the filesystem group must mount
 // fs-sandbox, not bare fs-local (bare fs-local leaves str_replace_editor

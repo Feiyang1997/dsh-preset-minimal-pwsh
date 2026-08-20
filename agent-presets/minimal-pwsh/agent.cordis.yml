@@ -1,10 +1,15 @@
 # The `minimal-pwsh` agent preset (极简模式 (PowerShell)): a fixed-prompt,
-# two-tool Windows coding-agent composition with PowerShell instead of bash.
+# two-tool Windows coding-agent composition with a PERSISTENT PowerShell shell.
 #
 # The persona is the complete system prompt, so global identity, Web orientation,
 # tool guidance, and later assembly listeners cannot add prompt text. Runtime
 # context snapshots are suppressed for this preset, and the model composes only
-# the `pwsh` tool and `str_replace_editor`. Context compaction is absent.
+# the persistent `pwsh` tool and `str_replace_editor`. Context compaction is absent.
+#
+# The persistent-shell group mirrors the official minimal preset's win32 stack
+# (rc8 added `tool-pwsh-persistent` plus the `shellDialect: pwsh` PTY backend
+# and the win32 process inspector), so cwd and environment persist across calls.
+# Rows stay win32-gated exactly like the official preset's.
 
 - id: persona
   name: '@deepseek-ai/dsh-persona'
@@ -13,20 +18,38 @@
     complete: true
     includeRuntimeContext: false
 
-# The host composition mounts `dsh-pwsh-sandbox` on win32 and its `shell`
-# service is host-plane; this row only exposes the model-facing tool. The
-# official minimal preset's persistent bash depends on a PTY backend that
-# win32 rejects (`terminal inspection is unsupported on platform win32`), so
-# this preset replaces it with the built-in per-call pwsh tool.
-# `enableRunInBackground: false` keeps the two-tool surface honest: this
-# preset mounts no `tool-jobs`, so the advertised parameter would otherwise
-# fail at execute with "background jobs unavailable" (official minimal's bash
-# exposes no background parameter either).
-- id: tool-pwsh
-  name: '@deepseek-ai/dsh-tool-pwsh'
-  disabled: !!js process.platform !== 'win32'
+# The PTY registry is an agent-owned service, so it lives in an entry-local
+# realm. The backend still consumes the host sandbox policy and subprocess
+# implementation, while the tool registers into this agent's scoped catalog.
+- id: persistent-shell
+  name: cordis:group
+  group: true
+  isolate:
+    terminals: true
   config:
-    enableRunInBackground: false
+    - id: pty
+      name: '@deepseek-ai/dsh-terminal'
+
+    - id: terminal-pwsh
+      name: '@deepseek-ai/dsh-terminal-bash'
+      disabled: !!js process.platform !== 'win32'
+      config:
+        shellDialect: pwsh
+        timeoutMs: 300000
+
+    - id: persistent-pwsh
+      name: '@deepseek-ai/dsh-tool-pwsh-persistent'
+      disabled: !!js process.platform !== 'win32'
+      config:
+        timeoutMs: 300000
+        description: |-
+          Run commands in a PowerShell shell
+          * When invoking this tool, the contents of the "command" parameter does NOT need to be XML-escaped.
+          * You don't have access to the internet via this tool.
+          * State is persistent across command calls and discussions with the user.
+          * Use native Windows paths (C:\...) and $env:NAME variables; this is PowerShell, not bash.
+          * Please avoid commands that may produce a very large amount of output.
+          * Please run long lived commands in the background, e.g. 'Start-Job' or start a server with Start-Process.
 
 # The sandbox-enforcing filesystem shadows the host's provider only for this
 # preset. Unlike the official minimal preset (bare fs-local leaves
