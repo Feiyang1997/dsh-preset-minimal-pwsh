@@ -2,7 +2,7 @@
 
 [![preset-check](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml/badge.svg)](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml)
 
-A Windows persistent edition of the DeepSeek Harness **minimal** agent preset: two tools (persistent `pwsh` + `str_replace_editor`), a fixed persona, no context compaction, aligned with the official minimal design — plus a fix for the official editor write-fence gap. Only built-in plugins (including the persistent-pwsh capability added in rc8), no core-code changes.
+A Windows patch preset for the DeepSeek Harness **minimal** agent. **Since rc8 the official minimal preset natively supports Windows** (persistent `pwsh` + `str_replace_editor`); the **only difference** between this repo and the official composition is that it swaps the official bare `fs-local` for `dsh-fs-sandbox`, fixing the editor write-fence gap ([#2066](https://github.com/deepseek-ai/deepseek-harness/discussions/2066)). Only built-in plugins, no core-code changes. **If the official project fixes #2066, this repo becomes obsolete — use the official minimal preset instead.**
 
 ## Why
 

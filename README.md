@@ -2,7 +2,7 @@
 
 [![preset-check](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml/badge.svg)](https://github.com/Feiyang1997/dsh-preset-minimal-pwsh/actions/workflows/preset-check.yml)
 
-DeepSeek Harness「极简模式」的 Windows 持久版 agent preset：双工具（持久 `pwsh` + `str_replace_editor`）、固定 persona、无上下文压缩，设计对齐官方极简模式；并在官方之上修复编辑器写围栏缺口。只依赖官方内置插件（含 rc8 新增的持久 pwsh 能力），不修改核心代码。
+DeepSeek Harness「极简模式」的 Windows 补丁 preset。**官方 rc8 起已在 Windows 原生支持极简模式**（持久 `pwsh` + `str_replace_editor`），本仓库与官方组合的**唯一差异**是：把官方仍使用的裸 `fs-local` 换成 `dsh-fs-sandbox`，修复编辑器写围栏缺口（[#2066](https://github.com/deepseek-ai/deepseek-harness/discussions/2066)）。只依赖官方内置插件，不修改核心代码。**若官方修复 #2066，本仓库即失去存在意义，请直接使用官方极简模式。**
 
 ## 为什么需要
 
